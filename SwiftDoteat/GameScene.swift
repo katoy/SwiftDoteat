@@ -30,8 +30,8 @@ class TouchScene: SKScene {
 
 class GameScene: SKScene, CharacterDelegate {
 
-    var tileMap = [Tile]()                            // すべてのタイルを保持する配列
-    var flowerMap = [Int: SKSpriteNode]()             // 花のタイルを保持する辞書
+    var tileMap = [[Tile]]()                          // すべてのタイルを保持する配列
+    var flowerMap = [Int : SKSpriteNode]()             // 花のタイルを保持する辞書
     var tileSize = CGSize(width: 10.0, height: 10.0)  // タイルの表示上のサイズ
     var mapWidth = 0                                  // マップの横方向のタイル数
     var mapHeight = 0                                 // マップの縦方向のタイル数
@@ -81,6 +81,13 @@ class GameScene: SKScene, CharacterDelegate {
         /* Called before each frame is rendered */
     }
 
+    func xy2index(x : Int, y : Int) -> Int {
+        return y * self.mapWidth + x
+    }
+    func index2Position(index : Int) -> TilePosition {
+        return TilePosition(x: index / self.mapHeight, y: index % self.mapWidth)
+    }
+
     // タイルの位置からシーン上での位置を返すメソッド
     func getScenePointByTilePosition(position:TilePosition) -> CGPoint {
         let x = CGFloat(position.x + 1) * self.tileSize.width
@@ -97,8 +104,10 @@ class GameScene: SKScene, CharacterDelegate {
         }
 
         // タイルのスプライトをシーンに貼り付ける
-        for tile in self.tileMap {
-            self.addChild(tile)
+        for rowTiles in self.tileMap {
+            for tile in rowTiles {
+                self.addChild(tile)
+            }
         }
 
         // 花のスプライトをシーンに貼り付ける
@@ -117,8 +126,8 @@ class GameScene: SKScene, CharacterDelegate {
 
         drawMap()                              // マップを描画する
         createPlayer(TilePosition(x: 0, y: 2)) // プレイヤーを作成する
-        //createEnemy(TilePosition(x: 5, y: 5))  // 敵 1 を作成する
-        //createEnemy(TilePosition(x: 10, y: 5)) // 敵 2 を作成する
+        createEnemy(TilePosition(x: 5, y: 5))  // 敵 1 を作成する
+        createEnemy(TilePosition(x: 10, y: 5)) // 敵 2 を作成する
 
         // スコアボードを設置する
         let houseSprite = SKSpriteNode(imageNamed: "house")
@@ -228,7 +237,7 @@ class GameScene: SKScene, CharacterDelegate {
             for enemy in self.enemies {
                 // プレイヤーと敵が同じ位置にいたら
                 if player.position.isEqual(enemy.position) {
-                    doGameOver()
+                    doGameOver(false)
                     break
                 }
             }
@@ -244,13 +253,13 @@ class GameScene: SKScene, CharacterDelegate {
             return nil
         }
         // インデックスからタイルを返却する
-        return self.tileMap[index]
+        return self.tileMap[position.y][position.x]
     }
 
     // 花を摘むときに呼ばれるメソッド
     func removeFlower(position: TilePosition) {
         // タイルの位置からインデックスを求める
-        let index = position.y * self.mapWidth + position.x
+        let index = xy2index(position.x, y: position.y)
         // インデックスから花のスプライトを求める
         if let flowerSprite = self.flowerMap[index] {
             // スプライトをシーンから削除する
@@ -265,14 +274,15 @@ class GameScene: SKScene, CharacterDelegate {
 
             // 全ての花を摘み終えたら
             if self.flowerMap.count == 0 {
-                doGameOver()
+                doGameOver(true)
             }
         }
     }
 
-    func doGameOver() {
+    func doGameOver(clear : Bool) {
         // ゲームクリア画面のシーンを作成する
-        let scene = self.createImageScene("gameclear")
+        let scene = clear ? self.createImageScene("gameclear") : self.createImageScene("gameover")
+
         // クロスフェードトランジションを適用しながらシーンを移動する
         let transition = SKTransition.crossFadeWithDuration(1.0)
         self.view?.presentScene(scene, transition: transition)
@@ -311,7 +321,8 @@ class GameScene: SKScene, CharacterDelegate {
             var vector = Array<Int>()
             var x = 0
             for item in items {
-                vector.append(item.toInt()!)
+                let trimed = item.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+                vector.append(trimed.toInt()!)
                 x += 1
             }
             ary.append(vector)
@@ -320,50 +331,50 @@ class GameScene: SKScene, CharacterDelegate {
         return (dimx, dimy, ary)
     }
 
-    // マップデータを読み込むメソッド
+    // マップデータを読み込んで タイル, 花の sprite を生成する
     func loadMapData(fileName:String) {
         // csv を読み込む
-        let csv = readCSV(fileName)
-        self.mapWidth = csv.0
-        self.mapHeight = csv.1
+        let csv = readCSV(fileName) // tuple (列の数、行の数 Int の 2 次元配列 が返る
+        self.mapWidth = csv.0       // 列の数
+        self.mapHeight = csv.1      // 行の数
 
-        // タイルの幅を求める
+         // タイルの大きさを設定する (正方形)
         let tileWidth = Double(self.frame.width) * 0.9 / Double(self.mapWidth)
-        // タイルの大きさを得る
         self.tileSize = CGSize(width: tileWidth, height: tileWidth)
 
         var y = 0
-        // 行中の要素ごとに処理を行う
-        for line in csv.2 {
+        // 行中の要素毎に処理を行う
+        for row in csv.2 {
+            var rowTiles = Array<Tile>()
             var x = 0
-            for value in line {
-                // 文字列をInt型に変換する
-                let tileString = "\(value)"
-                // Int型の値をTileType型に変換する
+            for value in row {
+                let tileName = "\(value)"
+                // Int から TileType型 に変換する
                 if let type = TileType(rawValue: value) {
-                    // インデックスからタイルの位置を求める
+                    // (列、行) の位置からタイルの位置を求める
                     let position = TilePosition(x: x, y: y)
 
-                    // タイルを作成して配列に納める
-                    let tile = Tile(imageNamed: tileString)
+                    // タイルを作成してタイルの配列に追加する
+                    let tile = Tile(imageNamed: tileName)
                     tile.position = self.getScenePointByTilePosition(position)
                     tile.size = self.tileSize
                     tile.type = type
-                    self.tileMap.append(tile)  // 一次元配列
+                    rowTiles.append(tile)
 
                     // タイルが花を置く条件にあてはまる場合
                     if type == .Road1 || type == .Road2 {
-                        // 花のスプライトを作成して配列に収める
+                        // 花のスプライトを花の配列に追加する
                         let flowerSprite = SKSpriteNode(imageNamed: "flower")
                         flowerSprite.size = tile.size
                         flowerSprite.position = tile.position
                         flowerSprite.anchorPoint = tile.anchorPoint
-                        self.flowerMap[y * self.mapWidth + x] = flowerSprite // 一次元配列
+                        self.flowerMap[xy2index(x, y: y)] = flowerSprite // 一次元配列
                     }
                 }
-                x += 1
+                x++
             }
-            y += 1
+            self.tileMap.append(rowTiles)
+            y++
         }
     }
 }

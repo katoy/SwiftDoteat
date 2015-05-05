@@ -22,6 +22,7 @@
 		C02AFA8C1AF805DD00281432 /* Enemy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C02AFA8B1AF805DD00281432 /* Enemy.swift */; };
 		C02AFA8E1AF8062C00281432 /* Character.swift in Sources */ = {isa = PBXBuildFile; fileRef = C02AFA8D1AF8062C00281432 /* Character.swift */; };
 		C02AFA901AF8088200281432 /* map.csv in Resources */ = {isa = PBXBuildFile; fileRef = C02AFA8F1AF8088200281432 /* map.csv */; };
+		C02AFA921AF8818A00281432 /* map-ascii.csv in Resources */ = {isa = PBXBuildFile; fileRef = C02AFA911AF8818A00281432 /* map-ascii.csv */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,6 +55,7 @@
 		C02AFA8B1AF805DD00281432 /* Enemy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Enemy.swift; sourceTree = "<group>"; };
 		C02AFA8D1AF8062C00281432 /* Character.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Character.swift; sourceTree = "<group>"; };
 		C02AFA8F1AF8088200281432 /* map.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = map.csv; sourceTree = "<group>"; };
+		C02AFA911AF8818A00281432 /* map-ascii.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "map-ascii.csv"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,6 +106,7 @@
 				C02AFA891AF8059900281432 /* Player.swift */,
 				C02AFA8B1AF805DD00281432 /* Enemy.swift */,
 				C02AFA6A1AF801C100281432 /* LaunchScreen.xib */,
+				C02AFA911AF8818A00281432 /* map-ascii.csv */,
 				C02AFA8F1AF8088200281432 /* map.csv */,
 				C02AFA681AF801C100281432 /* Images.xcassets */,
 				C02AFA851AF804A400281432 /* akazukin.atlas */,
@@ -226,6 +229,7 @@
 				C02AFA671AF801C100281432 /* Main.storyboard in Resources */,
 				C02AFA841AF803BE00281432 /* wolf.atlas in Resources */,
 				C02AFA861AF804A400281432 /* akazukin.atlas in Resources */,
+				C02AFA921AF8818A00281432 /* map-ascii.csv in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

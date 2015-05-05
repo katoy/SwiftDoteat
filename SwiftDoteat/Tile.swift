@@ -32,7 +32,7 @@ class Tile: SKSpriteNode {
 enum Direction {
     case None, Up, Down, Left, Right
 
-    // 逆方向のDirectionを返却するメソッド
+    // 逆方向の Direction を返却するメソッド
     func reverseDirection() -> Direction {
         switch self {
         case .None: return .None
@@ -48,18 +48,18 @@ enum Direction {
 struct TilePosition {
     var x, y: Int
 
-    // directionの方向に移動したときの位置を返すメソッド
+    // direction の方向に移動したときの位置を返すメソッド
     func movedPosition(direction:Direction) -> TilePosition {
         switch direction {
-        case .Up: return TilePosition(x: x, y: y-1)
-        case .Down: return TilePosition(x: x, y: y+1)
-        case .Left: return TilePosition(x: x-1, y: y)
-        case .Right: return TilePosition(x: x+1, y: y)
-        case .None: return TilePosition(x: x, y: y)
+        case .Up:    return TilePosition(x: x,     y: y - 1)
+        case .Down:  return TilePosition(x: x,     y: y + 1)
+        case .Left:  return TilePosition(x: x - 1, y: y)
+        case .Right: return TilePosition(x: x + 1, y: y)
+        case .None:  return TilePosition(x: x,     y: y)
         }
     }
 
-    // 他のTilePositionと同じ位置かどうかを返すメソッド
+    // 他の TilePosition と同じ位置かどうかを返すメソッド
     func isEqual(other:TilePosition) -> Bool {
         return self.x == other.x && self.y == other.y
     }
