@@ -18,12 +18,12 @@ class TouchScene: SKScene {
         // フリップトランジション
         let transition = SKTransition.flipVerticalWithDuration(1.0)
 
-        // GameSceneを初期化する
+        // GameScene を初期化する
         let scene = GameScene()
         scene.scaleMode = .AspectFill
         scene.size = self.size
 
-        // トランジションを適用しながらGameSceneに遷移する
+        // トランジションを適用しながら GameScene に遷移する
         self.view?.presentScene(scene, transition: transition)
     }
 }
@@ -54,15 +54,15 @@ class GameScene: SKScene, CharacterDelegate {
         // プレイヤーの現在位置を取得
         if let playerLocation = self.player?.sprite?.position {
             // タッチ位置とプレイヤーの位置との差を求める
-            let x = touchLocation.x - playerLocation.x
-            let y = touchLocation.y - playerLocation.y
+            let dx = touchLocation.x - playerLocation.x
+            let dy = touchLocation.y - playerLocation.y
 
             // 絶対値が大きい方向を求める
             var nextDirection: Direction
-            if abs(x) > abs(y) {
-                nextDirection = x > 0 ? .Right : .Left
+            if abs(dx) > abs(dy) {
+                nextDirection = dx > 0 ? .Right : .Left
             } else {
-                nextDirection = y > 0 ? .Up : .Down
+                nextDirection = dy > 0 ? .Up : .Down
             }
 
             if let player = self.player {
@@ -115,13 +115,10 @@ class GameScene: SKScene, CharacterDelegate {
         backgroundSprite.position = CGPoint(x: self.size.width * 0.5, y: self.size.height * 0.5)
         self.addChild(backgroundSprite)
 
-        // マップを描画する
-        self.drawMap()
-        // プレイヤーを作成する
-        self.createPlayer(TilePosition(x: 0, y: 2))
-        // 敵を作成する
-        self.createEnemy(TilePosition(x: 5, y: 5))
-        // self.createEnemy(TilePosition(x: 10, y: 5))
+        drawMap()                              // マップを描画する
+        createPlayer(TilePosition(x: 0, y: 2)) // プレイヤーを作成する
+        //createEnemy(TilePosition(x: 5, y: 5))  // 敵 1 を作成する
+        //createEnemy(TilePosition(x: 10, y: 5)) // 敵 2 を作成する
 
         // スコアボードを設置する
         let houseSprite = SKSpriteNode(imageNamed: "house")
@@ -140,7 +137,7 @@ class GameScene: SKScene, CharacterDelegate {
         self.addChild(scoreLabel)
         self.scoreLabel = scoreLabel
 
-        // "points"ラベルを設置する
+        // "points" ラベルを設置する
         let pointsLabel = SKLabelNode(fontNamed: "Helvetica")
         pointsLabel.text = "points"
         pointsLabel.fontSize = 18
@@ -183,10 +180,10 @@ class GameScene: SKScene, CharacterDelegate {
 
         // Playerクラスのオブジェクトを作成する
         var player = Player()
-        player.delegate = self              // デリゲートにGameSceneを指定する
+        player.delegate = self            // デリゲートにGameSceneを指定する
         player.position = firstPosition
         player.sprite = sprite
-        player.startMoving()                // 移動を開始する
+        player.startMoving()              // 移動を開始する
         self.player = player
     }
 
@@ -198,7 +195,8 @@ class GameScene: SKScene, CharacterDelegate {
 
         // 一枚目のテクスチャでスプライトを作成する
         var sprite = SKSpriteNode(texture: wolf1)
-        sprite.size = CGSize(width: self.tileSize.width * 1.5, height: self.tileSize.height)    // タイルから少しはみ出るくらい横幅を確保する
+        // タイルから少しはみ出るくらい横幅を確保する
+        sprite.size = CGSize(width: self.tileSize.width * 1.5, height: self.tileSize.height)
         sprite.position = self.getScenePointByTilePosition(firstPosition)
         self.addChild(sprite)
 
@@ -207,12 +205,12 @@ class GameScene: SKScene, CharacterDelegate {
         let repeat = SKAction.repeatActionForever(animation)
         sprite.runAction(repeat)
 
-        // Enemyクラスのオブジェクトを作成する
+        // Enemy クラスのオブジェクトを作成する
         var enemy = Enemy()
-        enemy.delegate = self               // デリゲートにGameSceneを指定する
+        enemy.delegate = self             // デリゲートにGameSceneを指定する
         enemy.position = firstPosition
         enemy.sprite = sprite
-        enemy.startMoving()                 // 移動を開始する
+        enemy.startMoving()               // 移動を開始する
 
         self.enemies.append(enemy)
     }
@@ -230,18 +228,7 @@ class GameScene: SKScene, CharacterDelegate {
             for enemy in self.enemies {
                 // プレイヤーと敵が同じ位置にいたら
                 if player.position.isEqual(enemy.position) {
-                    // ゲームオーバー画面のシーンを作成する
-                    let scene = self.createImageScene("gameover")
-                    // クロスフェードトランジションを適用しながらシーンを移動する
-                    let transition = SKTransition.crossFadeWithDuration(1.0)
-                    self.view?.presentScene(scene, transition: transition)
-
-                    // プレイヤーの動きを止める
-                    player.stopMoving()
-                    // 全ての敵の動きを止める
-                    for e in self.enemies {
-                        e.stopMoving()
-                    }
+                    doGameOver()
                     break
                 }
             }
@@ -278,20 +265,24 @@ class GameScene: SKScene, CharacterDelegate {
 
             // 全ての花を摘み終えたら
             if self.flowerMap.count == 0 {
-                // ゲームクリア画面のシーンを作成する
-                let scene = self.createImageScene("gameclear")
-                // クロスフェードトランジションを適用しながらシーンを移動する
-                let transition = SKTransition.crossFadeWithDuration(1.0)
-                self.view?.presentScene(scene, transition: transition)
-
-
-                // プレイヤーの動きを止める
-                self.player?.stopMoving()
-                // 全ての敵の動きを止める
-                for enemy in self.enemies {
-                    enemy.stopMoving()
-                }
+                doGameOver()
             }
+        }
+    }
+
+    func doGameOver() {
+        // ゲームクリア画面のシーンを作成する
+        let scene = self.createImageScene("gameclear")
+        // クロスフェードトランジションを適用しながらシーンを移動する
+        let transition = SKTransition.crossFadeWithDuration(1.0)
+        self.view?.presentScene(scene, transition: transition)
+
+
+        // プレイヤーの動きを止める
+        self.player?.stopMoving()
+        // 全ての敵の動きを止める
+        for enemy in self.enemies {
+            enemy.stopMoving()
         }
     }
 
