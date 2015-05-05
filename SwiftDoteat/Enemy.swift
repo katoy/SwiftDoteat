@@ -12,8 +12,7 @@ import SpriteKit
 // 敵を表すクラス (キャラクターを継承)
 class Enemy : Character {
 
-    // move　メソッドをオーバライドする
-    // 敵は自動移動する。
+    // 敵は常に自動移動する。
     override func move() {
         // 現在の移動方向に移動したときの位置を求める
         let newPosition = self.position.movedPosition(self.direction)

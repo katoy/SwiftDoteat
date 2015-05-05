@@ -23,20 +23,13 @@ protocol CharacterDelegate {
 
 // キャラクターを表すクラス
 class Character: NSObject {
-    // キャラクタのスプライト
-    var sprite: SKSpriteNode?
+    var sprite: SKSpriteNode?                // キャラクタのスプライト
+    var direction = Direction.None           // 現在の進行方向
+    var nextDirection = Direction.None       // 次回の進行方向
+    var position = TilePosition(x: 0, y: 0)  // 現在の位置
 
-    // 現在の進行方向
-    var direction = Direction.None
-    // 次回の進行方向
-    var nextDirection = Direction.None
-    // 現在の位置
-    var position = TilePosition(x: 0, y: 0)
-
-    // 移動用タイマー
-    var timer: NSTimer?
-    // 移動する間隔(秒)
-    let timerInterval = 0.6
+    var timer: NSTimer?                      // 移動用タイマー
+    let timerInterval = 0.6                  // 移動する間隔(秒)
 
     // キャラクターで起きたイベントを通知するデリゲート
     var delegate: CharacterDelegate?
@@ -86,6 +79,7 @@ class Character: NSObject {
         self.move()
     }
 
+    // Splite を移動する。
     func doStep(position: TilePosition) {
         // 方向と位置を反映する
         self.direction = self.nextDirection
@@ -93,6 +87,7 @@ class Character: NSObject {
         // デリゲート(シーン)にキャラクターの移動を通知する
         delegate?.moveCharacter(self)
     }
+
     // 移動を行うメソッド
     func move() {
         // 移動したときの位置を求める
