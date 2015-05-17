@@ -10,9 +10,9 @@ import Foundation
 import SpriteKit
 
 // キャラクターとシーンの橋渡しをするプロトコル
-protocol CharacterDelegate {
+protocol SPCharacterDelegate {
     // キャラクターが動いたことを通知する
-    func moveCharacter(character:Character)
+    func moveCharacter(character:SPCharacter)
 
     // 花を摘んだことを通知する
     func removeFlower(position:TilePosition)
@@ -22,7 +22,7 @@ protocol CharacterDelegate {
 }
 
 // キャラクターを表すクラス
-class Character: NSObject {
+class SPCharacter: NSObject {
     var sprite: SKSpriteNode?                // キャラクタのスプライト
     var direction = Direction.None           // 現在の進行方向
     var nextDirection = Direction.None       // 次回の進行方向
@@ -32,7 +32,7 @@ class Character: NSObject {
     let timerInterval = 0.6                  // 移動する間隔(秒)
 
     // キャラクターで起きたイベントを通知するデリゲート
-    var delegate: CharacterDelegate?
+    var delegate: SPCharacterDelegate?
 
     // キャラクターが移動可能かどうかを返すメソッド
     func canMove(position:TilePosition) -> Bool {

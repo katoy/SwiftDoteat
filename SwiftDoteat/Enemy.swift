@@ -10,7 +10,7 @@ import Foundation
 import SpriteKit
 
 // 敵を表すクラス (キャラクターを継承)
-class Enemy : Character {
+class Enemy : SPCharacter {
 
     // 敵は常に自動移動する。
     override func move() {
@@ -23,11 +23,15 @@ class Enemy : Character {
         var directions = self.getMovableDirections()
 
         // 進行方向に移動出来ないか、移動可能な方向が複数ある場合
-        if !canMove || directions.count >= 1 {
-            // 方向をランダムに一つ選択する
-            let index = Int(arc4random_uniform(UInt32(directions.count)))
-            // 次回の移動方向として設定する
-            self.nextDirection = directions[index]
+        if !canMove || directions.count > 1 {
+            if directions.count == 0 {
+                self.nextDirection = self.direction.reverseDirection()
+            } else {
+                // 方向をランダムに一つ選択する
+                let index = Int(arc4random_uniform(UInt32(directions.count)))
+                // 次回の移動方向として設定する
+                self.nextDirection = directions[index]
+            }
             // 移動用タイマーを開始する
             self.startMoving()
         }

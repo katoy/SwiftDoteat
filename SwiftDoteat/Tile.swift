@@ -10,13 +10,52 @@ import Foundation
 import SpriteKit
 
 // タイルの種類を表す列挙型
-enum TileType: Int {
+enum TileType {
     case None
     // 通ることが出来る道
     case Road1, Road2, Road3, Road4, Road5, Road6, Road7, Road8, Road9, Road10, Road11
+    case Road0 // 密室？
     // 障害物の木
     case Tree1, Tree2, Tree3
 
+    init?(name: String) {
+        switch name {
+        case "1":
+            self = .Road1
+        case "2":
+            self = .Road2
+        case "3":
+            self = .Road3
+        case "4":
+            self = .Road4
+        case "5":
+            self = .Road5
+        case "6":
+            self = .Road6
+        case "7":
+            self = .Road7
+        case "8":
+            self = .Road8
+        case "9":
+            self = .Road9
+        case "10":
+            self = .Road10
+        case "11":
+            self = .Road11
+        case "x":
+            self = .Road0
+        case "0":
+            self = .None
+        case "A":
+            self = .Tree1
+        case "B":
+            self = .Tree2
+        case "C":
+            self = .Tree3
+        default:
+            return nil
+        }
+    }
     // キャラクターが移動できる種類のタイルかどうかを返すメソッド
     func canMove() -> Bool {
         return (self != .None && self != .Tree1 && self != .Tree2 && self != .Tree3)

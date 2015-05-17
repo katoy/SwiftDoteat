@@ -28,7 +28,7 @@ class TouchScene: SKScene {
     }
 }
 
-class GameScene: SKScene, CharacterDelegate {
+class GameScene: SKScene, SPCharacterDelegate {
 
     var tileMap = [[Tile]]()                          // すべてのタイルを保持する配列
     var flowerMap = [Int : SKSpriteNode]()             // 花のタイルを保持する辞書
@@ -98,7 +98,7 @@ class GameScene: SKScene, CharacterDelegate {
      // マップを描画するメソッド
     func drawMap() {
         // CSVファイルのパスを求める
-        if let fileName = NSBundle.mainBundle().pathForResource("map", ofType: "csv") {
+        if let fileName = NSBundle.mainBundle().pathForResource("map_ascii", ofType: "txt") {
             // マップを読み込む
             self.loadMapData(fileName)
         }
@@ -125,10 +125,10 @@ class GameScene: SKScene, CharacterDelegate {
         self.addChild(backgroundSprite)
 
         drawMap()                              // マップを描画する
-        createPlayer(TilePosition(x: 0, y: 2)) // プレイヤーを作成する
-        createEnemy(TilePosition(x: 5, y: 5))  // 敵 1 を作成する
-        createEnemy(TilePosition(x: 10, y: 5)) // 敵 2 を作成する
-
+        createPlayer(TilePosition(x: 0, y: 0)) // プレイヤーを作成する
+        for i in 0...1 {
+            createEnemy(TilePosition(x: 5, y: 5))  // 敵を作成する
+        }
         // スコアボードを設置する
         let houseSprite = SKSpriteNode(imageNamed: "house")
         houseSprite.size = CGSize(width: 143, height: 91)
@@ -216,7 +216,7 @@ class GameScene: SKScene, CharacterDelegate {
 
         // Enemy クラスのオブジェクトを作成する
         var enemy = Enemy()
-        enemy.delegate = self             // デリゲートにGameSceneを指定する
+        enemy.delegate = self             // デリゲートに GameScene を指定する
         enemy.position = firstPosition
         enemy.sprite = sprite
         enemy.startMoving()               // 移動を開始する
@@ -225,7 +225,7 @@ class GameScene: SKScene, CharacterDelegate {
     }
 
     // キャラクターが移動したときに呼ばれるメソッド
-    func moveCharacter(character: Character) {
+    func moveCharacter(character: SPCharacter) {
         // スプライトに移動アニメーションを適用する
         if let sprite = character.sprite {
             let moveAction = SKAction.moveTo(self.getScenePointByTilePosition(character.position), duration: 0.6)
@@ -248,7 +248,7 @@ class GameScene: SKScene, CharacterDelegate {
     func tileByPosition(position: TilePosition) -> Tile? {
         // タイルの位置からインデックスを求める
         let index = position.y * self.mapWidth + position.x
-        // インデックスがマップの範囲外ならnilを返す
+        // インデックスがマップの範囲外なら nil を返す
         if position.x < 0 || position.y < 0 || position.x >= self.mapWidth || position.y >= self.mapHeight {
             return nil
         }
@@ -296,13 +296,11 @@ class GameScene: SKScene, CharacterDelegate {
         }
     }
 
-    typealias CSVType = (Int, Int, Array<Array<Int>>)
-    // CSV を読み込む
-    func readCSV(fileName : String) -> CSVType {
-
+    typealias CSVType = (Int, Int, Array<Array<String>>)
+    // MAP を読み込む
+    func readCSV(fileName: String) -> CSVType {
         var error = NSErrorPointer()
 
-        var ary = Array<Array<Int>>()
         var dimx = 0
         var dimy = 0
 
@@ -310,25 +308,70 @@ class GameScene: SKScene, CharacterDelegate {
         let fileString = String(contentsOfFile: fileName, encoding: NSUTF8StringEncoding, error: error)
         // 改行で区切って配列にする
         let lineList = fileString!.componentsSeparatedByString("\n")
-        // 配列の要素数(CSVファイルの行数)を縦方向のタイル数として保持
         dimy = lineList.count
-
-        // 行ごとに処理を行う
         for line in lineList {
-            // カンマで要素を分割する
-            let items = line.componentsSeparatedByString(",")
-            // 行中の要素ごとに処理を行う
-            var vector = Array<Int>()
+            dimx = max(count(line), dimx)
+        }
+
+        var ary = [[String]](count: dimy, repeatedValue: [String](count: dimx, repeatedValue: "0"))
+        var work2 = [[String]](count: dimy + 2, repeatedValue: [String](count: dimx + 2, repeatedValue: " "))
+
+        var y = 0
+        for line in lineList {
             var x = 0
-            for item in items {
-                let trimed = item.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
-                vector.append(trimed.toInt()!)
-                x += 1
+            for c in line {
+                work2[y + 1][x + 1] = String(c)
+                x++
             }
-            ary.append(vector)
-            dimx = max(x, dimx)
+            y++
+        }
+
+        for y in 0..<dimy {
+            for x in 0..<dimx {
+                ary[y][x] = block2int([
+                    " ",             work2[y][x + 1],     " ",
+                    work2[y + 1][x], work2[y + 1][x + 1], work2[y + 1][x + 2],
+                    " ",             work2[y + 2][x + 1], " "
+                ])
+            }
         }
         return (dimx, dimy, ary)
+    }
+    let PATTERNS = [
+        "   ***   ": "1",
+        "   **    ": "1",
+        "    **   ": "1",
+        " *  *  * ": "2",
+        "    *  * ": "2",
+        " *  *    ": "2",
+        "    ** * ": "3",
+        "   **  * ": "4",
+        " * **    ": "5",
+        " *  **   ": "6",
+        "   *** * ": "7",
+        " * **  * ": "8",
+        " * ***   ": "9",
+        " *  ** * ": "10",
+        " * *** * ": "11",
+        "    *    ": "x",
+        " ": "0",
+        "A": "A",
+        "B": "B",
+        "C": "C",
+    ]
+
+    func block2int(neigh: [String]) -> String {
+        if neigh[4] != "*" {
+            return PATTERNS[neigh[4]]!
+        }
+        var block = ""
+        for c in neigh {
+            block += (c == "*" || c == " ") ? c : " "
+        }
+        if let ans = PATTERNS[block] {
+            return ans
+        }
+        return "0"
     }
 
     // マップデータを読み込んで タイル, 花の sprite を生成する
@@ -337,9 +380,12 @@ class GameScene: SKScene, CharacterDelegate {
         let csv = readCSV(fileName) // tuple (列の数、行の数 Int の 2 次元配列 が返る
         self.mapWidth = csv.0       // 列の数
         self.mapHeight = csv.1      // 行の数
-
          // タイルの大きさを設定する (正方形)
-        let tileWidth = Double(self.frame.width) * 0.9 / Double(self.mapWidth)
+        let tileWidth = min(
+                Double(self.frame.width) * 0.9 / Double(csv.0),
+                Double(self.frame.height) * 0.9 / Double(csv.1)
+        )
+
         self.tileSize = CGSize(width: tileWidth, height: tileWidth)
 
         var y = 0
@@ -349,12 +395,13 @@ class GameScene: SKScene, CharacterDelegate {
             var x = 0
             for value in row {
                 let tileName = "\(value)"
-                // Int から TileType型 に変換する
-                if let type = TileType(rawValue: value) {
+                // String から TileType型 に変換する
+                if let type = TileType(name: value) {
                     // (列、行) の位置からタイルの位置を求める
                     let position = TilePosition(x: x, y: y)
 
                     // タイルを作成してタイルの配列に追加する
+                    println(tileName)
                     let tile = Tile(imageNamed: tileName)
                     tile.position = self.getScenePointByTilePosition(position)
                     tile.size = self.tileSize

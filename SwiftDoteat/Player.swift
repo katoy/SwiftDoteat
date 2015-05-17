@@ -9,7 +9,7 @@
 import Foundation
 
 // プレイヤーを表すクラス (キャラクターを継承)
-class Player: Character {
+class Player: SPCharacter {
 
     // 移動中に花を摘んだときの処理を追加する
     override func move() {
