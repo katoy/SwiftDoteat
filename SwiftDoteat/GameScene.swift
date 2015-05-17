@@ -56,15 +56,21 @@ class GameScene: SKScene, SPCharacterDelegate {
             // タッチ位置とプレイヤーの位置との差を求める
             let dx = touchLocation.x - playerLocation.x
             let dy = touchLocation.y - playerLocation.y
+            let sprite_width = self.player!.sprite!.size.width * 0.7
+            var nextDirection: Direction = .None
+
+            if abs(dx) < sprite_width && abs(dy) < sprite_width {
+                // 移動停止する
+                player!.nextDirection = .None
+                return
+            }
 
             // 絶対値が大きい方向を求める
-            var nextDirection: Direction
             if abs(dx) > abs(dy) {
                 nextDirection = dx > 0 ? .Right : .Left
             } else {
                 nextDirection = dy > 0 ? .Up : .Down
             }
-
             if let player = self.player {
                 // プレイヤーが方向転換可能であれば
                 if player.canRotate(nextDirection) {
@@ -127,7 +133,7 @@ class GameScene: SKScene, SPCharacterDelegate {
         drawMap()                              // マップを描画する
         createPlayer(TilePosition(x: 0, y: 0)) // プレイヤーを作成する
         for i in 0...1 {
-            createEnemy(TilePosition(x: 5, y: 5))  // 敵を作成する
+            createEnemy(TilePosition(x: mapWidth - 2, y: mapHeight - 2))  // 敵を作成する
         }
         // スコアボードを設置する
         let houseSprite = SKSpriteNode(imageNamed: "house")
@@ -401,7 +407,6 @@ class GameScene: SKScene, SPCharacterDelegate {
                     let position = TilePosition(x: x, y: y)
 
                     // タイルを作成してタイルの配列に追加する
-                    println(tileName)
                     let tile = Tile(imageNamed: tileName)
                     tile.position = self.getScenePointByTilePosition(position)
                     tile.size = self.tileSize
